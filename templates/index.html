@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MNIST Digit Recognition</title>
+    <style>
+        body { text-align: center; font-family: Arial; }
+        canvas {
+            border: 2px solid black;
+            background: black;
+            cursor: crosshair;
+        }
+    </style>
+</head>
+<body>
+
+<h2>Draw a Digit (0–9)</h2>
+
+<canvas id="canvas" width="280" height="280"></canvas><br><br>
+
+<button onclick="clearCanvas()">Clear</button>
+<button onclick="predict()">Predict</button>
+
+<h3 id="result"></h3>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+ctx.fillStyle = "black";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+ctx.strokeStyle = "white";
+ctx.lineWidth = 20;
+ctx.lineCap = "round";
+
+let drawing = false;
+
+canvas.onmousedown = () => drawing = true;
+canvas.onmouseup = () => { drawing = false; ctx.beginPath(); };
+canvas.onmousemove = draw;
+
+function draw(e) {
+    if (!drawing) return;
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(e.offsetX, e.offsetY);
+}
+
+function clearCanvas() {
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    document.getElementById("result").innerText = "";
+}
+
+function predict() {
+    fetch("/predict", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ image: canvas.toDataURL("image/png") })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("result").innerText =
+            `Prediction: ${data.digit} (Confidence: ${data.confidence}%)`;
+    });
+}
+</script>
+
+</body>
+</html>
