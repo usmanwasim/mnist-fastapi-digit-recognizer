@@ -4,11 +4,7 @@
     <title>MNIST Digit Recognition</title>
     <style>
         body { text-align: center; font-family: Arial; }
-        canvas {
-            border: 2px solid black;
-            background: black;
-            cursor: crosshair;
-        }
+        canvas { border: 2px solid black; background: black; cursor: crosshair; }
     </style>
 </head>
 <body>
@@ -60,7 +56,7 @@ function predict() {
     .then(res => res.json())
     .then(data => {
         document.getElementById("result").innerText =
-            `Prediction: ${data.digit} (Confidence: ${data.confidence}%)`;
+            `Prediction: ${data.digit}`;
     });
 }
 </script>

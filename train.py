@@ -1,32 +1,31 @@
-import tensorflow as tf
-from tensorflow.keras import layers, models
-from tensorflow.keras.datasets import mnist
+import joblib
+import numpy as np
 import os
+from sklearn.datasets import fetch_openml
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 
 os.makedirs("model", exist_ok=True)
 
-(x_train, y_train), (x_test, y_test) = mnist.load_data()
+# Load MNIST
+mnist = fetch_openml('mnist_784', version=1)
+X, y = mnist["data"], mnist["target"].astype(int)
 
-x_train = x_train.reshape(-1, 28, 28, 1) / 255.0
-x_test = x_test.reshape(-1, 28, 28, 1) / 255.0
+# Normalize pixels
+X = X / 255.0
 
-model = models.Sequential([
-    layers.Conv2D(32, (3,3), activation='relu', input_shape=(28,28,1)),
-    layers.MaxPooling2D(2,2),
-    layers.Conv2D(64, (3,3), activation='relu'),
-    layers.MaxPooling2D(2,2),
-    layers.Flatten(),
-    layers.Dense(128, activation='relu'),
-    layers.Dense(10, activation='softmax')
-])
+# Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-model.compile(
-    optimizer="adam",
-    loss="sparse_categorical_crossentropy",
-    metrics=["accuracy"]
-)
+# Train model
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
 
-model.fit(x_train, y_train, epochs=5, validation_data=(x_test, y_test))
+# Accuracy
+y_pred = model.predict(X_test)
+print("Accuracy:", accuracy_score(y_test, y_pred))
 
-model.save("model/mnist_cnn.h5")
-print("✅ Model saved to model/mnist_cnn.h5")
+# Save model
+joblib.dump(model, "model/mnist_lr.joblib")
+print("✅ Model saved at model/mnist_lr.joblib")
